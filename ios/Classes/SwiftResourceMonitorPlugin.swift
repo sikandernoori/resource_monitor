@@ -14,9 +14,11 @@ public class SwiftResourceMonitorPlugin: NSObject, FlutterPlugin {
         if(call.method == "getResourceUsage")
         {
             var dict = [String: Any]()
-            dict["cpuUsage"] = cpuUsage()
-            dict["totalMemory"] = memoryUsage().total
-            dict["usedMemory"] = memoryUsage().used
+            //  dict["cpuInUsebyOs"] = //TODO(sikander)
+            //  dict["memoryInUseByOs"] = //TODO(sikander)
+            //  dict["totalMemory"] = //TODO(sikander)
+            dict["cpuInUseByApp"] = cpuInUseByApp()
+            dict["memoryInUseByApp"] = memoryInUseByApp()
             result(dict)
         }
         else
@@ -26,7 +28,8 @@ public class SwiftResourceMonitorPlugin: NSObject, FlutterPlugin {
         }
     }
     
-    public func cpuUsage() -> Double {
+    // CPU ine use by app (verified)
+    public func cpuInUseByApp() -> Double {
         var totalUsageOfCPU: Double = 0.0
         var threadsList: thread_act_array_t?
         var threadsCount = mach_msg_type_number_t(0)
@@ -61,7 +64,27 @@ public class SwiftResourceMonitorPlugin: NSObject, FlutterPlugin {
         return totalUsageOfCPU
     }
     
-    public func memoryUsage() -> MemoryUsage {
+    // Memory in use by App (verified)
+    func memoryInUseByApp() -> Double {
+        var taskInfo = mach_task_basic_info()
+        var count = mach_msg_type_number_t(MemoryLayout<mach_task_basic_info>.size)/4
+        let kerr: kern_return_t = withUnsafeMutablePointer(to: &taskInfo) {
+            $0.withMemoryRebound(to: integer_t.self, capacity: 1) {
+                task_info(mach_task_self_, task_flavor_t(MACH_TASK_BASIC_INFO), $0, &count)
+            }
+        }
+        
+        if kerr == KERN_SUCCESS {
+            return Double(taskInfo.resident_size)
+        }
+        else {
+            print("Error with task_info(): " +
+                    (String(cString: mach_error_string(kerr), encoding: String.Encoding.ascii) ?? "unknown error"))
+        }
+        return 0.0
+    }
+    // Memory in use by OS TODO(Sikander) verify
+    public func memoryInUseByOs() -> MemoryUsage {
         var taskInfo = task_vm_info_data_t()
         var count = mach_msg_type_number_t(MemoryLayout<task_vm_info>.size) / 4
         let result: kern_return_t = withUnsafeMutablePointer(to: &taskInfo) {

@@ -3,7 +3,7 @@
 A flutter plugin for Android and IOS to monitor CPU and RAM usage of device.
 
 ## TODO
-
+- [ ] Return overall system cpu/memory usage.
 - [ ] Implement Android Side of this plugin.
 - [ ] Add listener support for Android and IOS (EventChannel)
 - [ ] Update Readme.md

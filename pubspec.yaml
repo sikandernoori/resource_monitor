@@ -1,6 +1,6 @@
 name: resource_monitor
 description: A flutter plugin for Android and IOS to monitor CPU and RAM usage of device.
-version: 0.0.1
+version: 0.0.2
 homepage: https://github.com/sikandernoori/resource_monitor
 
 environment:
